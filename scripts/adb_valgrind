@@ -1,5 +1,6 @@
 #!/bin/bash
 # Usage: adb_valgrind system_server
+. $(dirname "$0")/common.sh
 
 SERVICE=0
 CLEAN_VALGRIND=0
@@ -17,23 +18,6 @@ pid()
     else
         echo "usage: pid name";
     fi
-}
-
-adb_root()
-{
-    adb shell id |grep uid=0 > /dev/null
-    if [ $? -eq 0 ]; then
-        echo already rooted
-    else
-        adb root
-        sleep 2
-        adb wait-for-device
-
-        # Need this step to make sure "adb shell" works now
-        adb shell echo root done.
-    fi
-
-    adb shell setenforce 0
 }
 
 usage()

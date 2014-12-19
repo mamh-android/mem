@@ -1,4 +1,6 @@
 #!/bin/sh
+. $(dirname "$0")/common.sh
+
 ADB_SHELL="adb shell "
 
 adb_root

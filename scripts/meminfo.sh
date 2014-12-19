@@ -1,21 +1,6 @@
 #!/bin/bash
 # FIXME: Fix procrank & librank not found issue
-
-adb_root()
-{
-    adb shell id |grep uid=0 > /dev/null
-    if [ $? -eq 0 ]; then
-        echo already rooted
-    else
-        adb root
-        sleep 1
-        adb wait-for-device
-
-        # Need this step to make sure "adb shell" works now
-        adb shell echo root done.
-    fi
-    adb shell setenforce 0
-}
+. $(dirname "$0")/common.sh
 
 # Filter out '\r' and '\0' in  "adb shell" output
 adb_shell()
