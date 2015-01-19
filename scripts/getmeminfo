@@ -75,17 +75,19 @@ sub parse{
 
     #==cmainfo=== part
     $part = get_part_meminfo_value($meminfostr, '(===cmainfo===.*?Count:)');
-    my $cma_contigous    = get_meminfo_value($part, 'Total:\s+\d+\s+(\d+)\s+\d+(\(pages\))?');
-    $cma_contigous *= 4;
     #this value include "(pages)",need to cut it
-    my $cma_total_string = get_meminfo_value($part, 'Total:\s+\d+\s+\d+\s+(\d+(\(pages\))?)');
+    my $cma_total_string = get_meminfo_value($part, '(Total:\s+\w+\s+\w+\s+\w+(\(pages\))?)');
     my $cma_toal = 0;
-    if($cma_total_string =~ /(\d+)\(pages\)/){
-        $cma_total = $1;
-    }else{
-        $cma_total = hex($cma_total_string);
+    my $cma_contigous = 0;
+    if($cma_total_string =~ /Total:\s+\w+\s+(\w+)\s+(\w+)\(pages\)/){
+        $cma_contigous = $1;
+        $cma_total = $2;
+    }elsif($cma_total_string =~ /Total:\s+\w+\s+(\w+)\s+(\w+)/){
+        $cma_contigous = hex($1);
+        $cma_total = hex($2);
     }
     $cma_total *= 4;
+    $cma_contigous *= 4;
 
     #===ion_system=== part
     $part = get_part_meminfo_value($meminfostr, '(===ion_system===.*?\sorder)');
@@ -189,7 +191,7 @@ sub parse{
 
 sub print_meminfo_size{
     my($title, $value) = @_;
-    printf "$title: %s KB (%.1f MB)\n", $value, convert_MB_to_KB($value);
+    printf "$title: %d KB (%.1f MB)\n", $value, convert_MB_to_KB($value);
 }
 
 sub convert_MB_to_KB{
