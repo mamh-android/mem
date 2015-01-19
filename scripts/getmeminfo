@@ -12,6 +12,14 @@ my $prog="getmeminfo";
 my $adb_s_id_root  = "adb root";
 my $adb_s_id_shell = "adb shell";
 
+sub adb_shell{
+    my ($command) = @_;
+    my $output = `$adb_s_id_shell $command`;
+    $output =~ s/[\r\x0]//g;
+
+    return $output;
+}
+
 sub get_meminfo_value{
     my($meminfostr, $pattern) = @_;
     if($meminfostr =~ /$pattern/m){
@@ -32,7 +40,7 @@ sub parse{
     my $part ="";
 
     #===meminfo== part
-    $part = get_part_meminfo_value($meminfostr, '(===meminfo===.*?===endmeminfo===)');
+    $part = get_part_meminfo_value($meminfostr, '(===meminfo===.*?===end meminfo===)');
     my $mem_buffers      = get_meminfo_value($part, 'Buffers:\s+(\d+)\skB');
     my $mem_cached       = get_meminfo_value($part, 'Cached:\s+(\d+)\skB');
     my $mem_swapcached   = get_meminfo_value($part, 'SwapCached:\s+(\d+)\skB');
@@ -55,7 +63,7 @@ sub parse{
     my $gc_total         = get_meminfo_value($part, 'GC Memory Sum:\s+(\d+)\sKB');
 
     #===procrank=== part
-    $part = get_part_meminfo_value($meminfostr, '(===procrank===.*?===endprocrank===)');
+    $part = get_part_meminfo_value($meminfostr, '(===procrank===.*?===end procrank===)');
     my $pss_total        = get_meminfo_value($part, '(\d+)K\s+\d+K\s+TOTAL');
     my $pss_unnecessary  = get_meminfo_value($part, '\s+\d+\s+\d+K\s+\d+K\s+(\d+)K\s+\d+K\s+procrank');
     $pss_unnecessary    += get_meminfo_value($part, '\s+\d+\s+\d+K\s+\d+K\s+(\d+)K\s+\d+K\s+com\.marvell\.gpssetting');
@@ -96,7 +104,7 @@ sub parse{
     my $lost_ram = get_meminfo_value($part, 'Lost RAM: (\d+) kB');
 
     #===vmallocinfo=== part
-    $part = get_part_meminfo_value($meminfostr, '(===vmallocinfo===.*?===endvmallocinfo===)');
+    $part = get_part_meminfo_value($meminfostr, '(===vmallocinfo===.*?===end vmallocinfo===)');
     my $vmalloc_total = 0;
     while($part =~ /0x0000000000000000-0x0000000000000000.*?pages=(\d+) vmalloc/g){
         $vmalloc_total += $1;
@@ -475,7 +483,7 @@ done'",
     $ret = `$adb_s_id_root`;
     my $adb_mount_debugfs = "mount -t debugfs debugfs /sys/kernel/debug";
     #debugfs info, need mount first
-    $ret = `$adb_s_id_shell $adb_mount_debugfs`;
+    $ret = adb_shell($adb_mount_debugfs);
 
     my $meminfostr = "";
     $meminfostr .= "----- Memory Info -----\n";
@@ -490,7 +498,7 @@ done'",
         my $command = ${$print_info_hash}{"command"};
         my $description = ${$print_info_hash}{"description"};
         #call print info function
-        $meminfostr .= print_info($adb_s_id_shell, $command, $title, $description);
+        $meminfostr .= print_info($command, $title, $description);
     }#end foreach()
 
     $meminfostr .= "----- Memory Info end -----\n";
@@ -521,13 +529,13 @@ sub print_version_info{
     my $cat_proc_version = "cat /proc/version";
     my $cat_build_prop = "cat /system/build.prop";
 
-    chomp(my $build_display_id = `$adb_s_id_shell $getprop_build_display_id`);
+    my $build_display_id = adb_shell($getprop_build_display_id);
     $str .= "$build_display_id\n";
 
-    chomp(my $proc_version = `$adb_s_id_shell $cat_proc_version`);
+    my $proc_version = adb_shell($cat_proc_version);
     $str .= "$proc_version\n";
 
-    chomp(my $build_prop = `$adb_s_id_shell $cat_build_prop`);
+    my $build_prop = adb_shell($cat_build_prop);
     $str .= "$build_prop\n";
 
     return $str;
@@ -539,9 +547,9 @@ sub print_kk_related_info{
     my $getprop_low_ram = "getprop ro.config.low_ram";
     my $getprop_codecachesize = "getprop dalvik.vm.jit.codecachesize";
 
-    chomp(my $extra_free_kbytes = `$adb_s_id_shell $getprop_extra_free_kbytes`);
-    chomp(my $low_ram = `$adb_s_id_shell $getprop_low_ram`);
-    chomp(my $codecachesize = `$adb_s_id_shell $getprop_codecachesize`);
+    my $extra_free_kbytes = adb_shell($getprop_extra_free_kbytes);
+    my $low_ram = adb_shell($getprop_low_ram);
+    my $codecachesize = adb_shell($getprop_codecachesize);
 
     $str .= "\nKK related info:\n";
 
@@ -554,11 +562,11 @@ sub print_kk_related_info{
 
 sub print_info{
     my $str = "";
-    my($adbshell, $command, $title, $description) = @_;
-    chomp(my $output = `$adbshell $command`);
+    my($command, $title, $description) = @_;
+    my $output = adb_shell($command);
     $str .= "\n===$title===\n";
     $str .= "$description"."$output";
-    $str .= "\n===end$title===\n";
+    $str .= "\n===end $title===\n";
     return $str;
 }
 
