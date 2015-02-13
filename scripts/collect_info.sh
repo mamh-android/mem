@@ -12,3 +12,4 @@ $ADB shell 'su -c dmesg' > kernel.log
 $ADB shell procrank > procrank.txt
 $ADB shell librank > librank.txt
 $ADB logcat -v threadtime -d > logcat.log
+$ADB logcat -b events -v threadtime -d > events.log

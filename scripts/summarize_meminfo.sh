@@ -169,7 +169,7 @@ calc()
     echo "$@" | bc -l
 }
 
-convert_MB_to_KB()
+convert_KB_to_MB()
 {
     calc "$1/1024"
 }
@@ -177,7 +177,7 @@ convert_MB_to_KB()
 # Print memory usage size (input unit is KB)
 print_size()
 {
-    printf "$1: %s KB (%.1f MB)\n" "$2" $(convert_MB_to_KB "$2")
+    printf "$1: %s KB (%.1f MB)\n" "$2" $(convert_KB_to_MB "$2")
 }
 
 while [ "$1" != "" ]; do
