@@ -19,6 +19,8 @@ Short explanations of scripts here:
     Usage:
     summarize_meminfo.sh meminfo.log > suminfo.log
 
+  * getmeminfo: Perl script rewritten to replace meminfo.sh and summarize_meminfo.sh
+
   * compare_pss.sh: Compare processes Pss in two meminfo.log, and generate
     pss_compare.txt to be imported to Excel (Use default 'TAB' as delimeter)
     Usage:
@@ -29,15 +31,21 @@ Short explanations of scripts here:
     Usage:
     compare_suminfo.sh suminfo0.log suminfo1.log
 
+- compare_heapdumps
+  Compares two "am dumpheap -n <pid>" native heap dumps and show report. Useful
+  for leak detection
+
 - adb_valgrind
   Wrapper script for easier usage of valgrind on device
+
+- adb_watch
+  Script to 'watch' adb shell outputs
 
 - enable_ksm.sh
   Enables/disables KSM feature on device
 
-- compare_heapdumps
-  Compares two "am dumpheap -n <pid>" native heap dumps and show report. Useful
-  for leak detection
+- trace_zram_mem.sh
+  Excel friendly output to track zRAM memory savings
 
 - ftrace_*.sh
   Handy scripts to enable commonly used ftraces for memory analysis and also
