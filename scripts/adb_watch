@@ -1,0 +1,30 @@
+#!/bin/bash
+# Use 'watch' to monitor adb shell outputs
+
+usage()
+{
+    echo "Usage:"
+    echo "$0 <adb_command> [log_file]"
+    echo
+    echo "Options:"
+    echo -e "\tadb_command:\tShell commands to run on device, with results we want to watch"
+    echo -e "\tlog_file:\tOptional parameter to specify log file"
+    echo "Examples:"
+    echo -e "\t$0 'cat /proc/meminfo; cat /proc/cmainfo'"
+    echo -e "\t$0 procrank"
+}
+
+if [ "$1" == "" ] || [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    usage
+    exit 1
+fi
+
+adb wait-for-device
+
+if [ "$2" != "" ]; then
+    rm $2
+    watch -d -n 1 "adb shell '$1; echo -------------------------' | tee -a $2"
+else
+    watch -d -n 1 "adb shell '$1; echo -------------------------'"
+fi
+
