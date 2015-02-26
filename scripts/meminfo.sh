@@ -94,6 +94,7 @@ echo "Also see SwapFree and SwapTotal in meminfo below"
 # Basic info
 run meminfo 'cat /proc/meminfo'
 run gc 'cat /proc/driver/gc'
+dump_node "gcmem info" /proc/driver/gcmem
 run LMK_adj 'cat /sys/module/lowmemorykiller/parameters/adj'
 run LMK_minfree 'cat /sys/module/lowmemorykiller/parameters/minfree'
 run procrank "$(sudo_cmd procrank)"
