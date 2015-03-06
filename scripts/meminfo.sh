@@ -76,6 +76,32 @@ fi' "$2" "$2" "$(sudo_cmd 'cat $i')")
     run "$1" "$cmd"
 }
 
+# Only runs command in verbose mode
+verbose()
+{
+    if [ $verbose_enabled -eq 1 ]; then
+        "$@"
+    fi
+}
+
+usage()
+{
+    echo "Usage: $0 [-s]"
+    echo "Collects all memory info from device via ADB connection"
+    echo
+    echo "Options:"
+    echo "    -s:    Only collects essential info (and thus runs faster)"
+}
+
+# Parse parameters
+verbose_enabled=1
+if [ "$1" == "--help" ]; then
+    usage
+    exit 0
+elif [ "$1" == "-s" ]; then
+    verbose_enabled=0
+fi
+
 check_su_parameter_type
 
 echo "----- Memory Info -----"
@@ -97,8 +123,8 @@ run gc 'cat /proc/driver/gc'
 dump_node "gcmem info" /proc/driver/gcmem
 run LMK_adj 'cat /sys/module/lowmemorykiller/parameters/adj'
 run LMK_minfree 'cat /sys/module/lowmemorykiller/parameters/minfree'
-run procrank "$(sudo_cmd procrank)"
-run librank "$(sudo_cmd librank)"
+verbose run procrank "$(sudo_cmd procrank)"
+verbose run librank "$(sudo_cmd librank)"
 run iomem 'cat /proc/iomem'
 run vmallocinfo 'cat /proc/vmallocinfo'
 run vmstat 'cat /proc/vmstat'
@@ -107,10 +133,10 @@ run buddyinfo 'cat /proc/buddyinfo'
 run pagetypeinfo 'cat /proc/pagetypeinfo'
 run cmainfo 'cat /proc/cmainfo'
 run slabinfo 'cat /proc/slabinfo'
-run showslab "$(sudo_cmd 'showslab -s c')"
-run slabinfo_alias "$(sudo_cmd 'slabinfo -a')"
-run slabinfo_list "$(sudo_cmd 'slabinfo')"
-run sysctl 'sysctl -a'
+verbose run showslab "$(sudo_cmd 'showslab -s c')"
+verbose run slabinfo_alias "$(sudo_cmd 'slabinfo -a')"
+verbose run slabinfo_list "$(sudo_cmd 'slabinfo')"
+verbose run sysctl 'sysctl -a'
 dump_node sysctl_vm /proc/sys/vm
 
 # Debugfs info
@@ -123,16 +149,20 @@ run ion_system "$(sudo_cmd 'cat /sys/kernel/debug/ion/heaps/system_heap')"
 # Specified interface for other platforms
 echo "Nodes for other platform, not exist on Marvell platform"
 echo "------------------------------------------------------------"
-dump_node mali /proc/mali
-run mtk_ion_carveout "$(sudo_cmd 'cat /sys/kernel/debug/ion/ion_carveout_heap')"
-run mtk_ion_mm "$(sudo_cmd 'cat /sys/kernel/debug/ion/ion_mm_heap')"
-run mtk_ion_sys_contig "$(sudo_cmd 'cat /sys/kernel/debug/ion/ion_system_contig_heap')"
+verbose dump_node mali /proc/mali
+verbose run mtk_ion_carveout "$(sudo_cmd 'cat /sys/kernel/debug/ion/ion_carveout_heap')"
+verbose run mtk_ion_mm "$(sudo_cmd 'cat /sys/kernel/debug/ion/ion_mm_heap')"
+verbose run mtk_ion_sys_contig "$(sudo_cmd 'cat /sys/kernel/debug/ion/ion_system_contig_heap')"
 
 # dumpsys
-run Dumpsys_SurfaceFlinger 'dumpsys SurfaceFlinger'
-run Dumpsys_Meminfo 'dumpsys meminfo -a'
-run Dumpsys_Procstats 'dumpsys procstats'
-run Dumpsys_OOM 'dumpsys activity oom'
+verbose run Dumpsys_SurfaceFlinger 'dumpsys SurfaceFlinger'
+if [ $verbose_enabled -eq 1 ]; then
+    run Dumpsys_Meminfo 'dumpsys meminfo -a'
+else
+    run Dumpsys_Meminfo 'dumpsys meminfo'
+fi
+verbose run Dumpsys_Procstats 'dumpsys procstats'
+verbose run Dumpsys_OOM 'dumpsys activity oom'
 
 # Showmaps
 sudo_cat_cmdline=$(sudo_cmd 'cat /proc/$i/cmdline')
@@ -147,7 +177,7 @@ for i in *; do
         %s
     fi
 done' "$sudo_cat_cmdline" "$sudo_showmap")
-run showmap "$showmap_cmd"
+verbose run showmap "$showmap_cmd"
 
 # Process maps and smaps
 smaps_cmd=$(printf 'cd /proc
@@ -159,4 +189,4 @@ for i in *; do
         %s
     fi
 done' "$sudo_cat_cmdline" "$sudo_cat_smaps")
-run smaps "$smaps_cmd"
+verbose run smaps "$smaps_cmd"
