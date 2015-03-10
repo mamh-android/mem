@@ -100,8 +100,9 @@ sub parse{
 
     #===Dumpsys_Meminfo=== part
     $part = get_part_meminfo_value($meminfostr, '(===Dumpsys_Meminfo===.*?Tuning:)');
-    my $zram_saved = get_meminfo_value($part, 'ZRAM: (\d+)');
-    my $zram_saved1 = get_meminfo_value($part, 'ZRAM: \d+ kB physical used for (\d+) kB');
+    my $zram_used1 = get_meminfo_value($part, 'ZRAM: (\d+)');
+    my $zram_swapped = get_meminfo_value($part, 'ZRAM: \d+ kB physical used for (\d+) kB');
+    my $zram_saved = $zram_swapped - $zram_used1;
     my $ksm_saved = get_meminfo_value($part, 'KSM: (\d+) kB');
     my $lost_ram = get_meminfo_value($part, 'Lost RAM: (\d+) kB');
 
@@ -132,9 +133,6 @@ sub parse{
     my $kernelused       = $mem_slab + $mem_pagetables + $mem_kernelstack;
     my $diff1            = $mem_active + $mem_inactive- ($mem_buffers
         + $mem_cached + $mem_swapcached + $mem_anonpages);
-    my $diff2            = $mem_memtotal - $mem_memfree - $mem_active
-        - $mem_inactive - $mem_slab - $mem_pagetables
-        - $mem_vmallocused - $mem_kernelstack;
     my $meminfo_pss_total= $mem_anonpages + $mem_mapped;
     #cal
     my $gc_alloc         = $gc_contig+$gc_contignon+$gc_virtual;
@@ -184,7 +182,6 @@ sub parse{
     $mem_result_hash{"zram_saved"}                              = $zram_saved;
     $mem_result_hash{"ksm_saved"}                               = $ksm_saved;
     $mem_result_hash{"diff1"}                                   = $diff1;
-    $mem_result_hash{"diff2"}                                   = $diff2;
 
     return %mem_result_hash;
 }#end sub parse
@@ -274,7 +271,6 @@ sub print_mem_summary{
     print_meminfo_size ("KSM saved", ${$mem_result_hash}{"ksm_saved"});
     printf "\nDebug:\n";
     print_meminfo_size ("Diff1", ${$mem_result_hash}{"diff1"});
-    print_meminfo_size ("Diff2", ${$mem_result_hash}{"diff2"});
 }
 
 sub parse_raw_data_file{
@@ -293,7 +289,7 @@ sub parse_raw_data_file{
 sub collect{
 
     my @print_info_array = (
-    {#1
+    {
         "command" =>
 "'if [[ -d /sys/kernel/mm/ksm ]]; then
     cd /sys/kernel/mm/ksm
@@ -305,102 +301,114 @@ fi'",
         "title"   => "KSM info",
         "description" => "",
     },
-    {#2
+    {
         "command" => "cat /sys/block/zram0/mem_used_total",
         "title"   => "zram_info",
         "description" => "ZRAM used memory (bytes): ",
     },
-    {#3
+    {
         "command" => "cat /proc/meminfo",
         "title"   => "meminfo",
         "description" => "",
     },
-    {#4
+    {
         "command" => "cat /proc/driver/gc",
         "title"   => "gc",
         "description" => "",
     },
-    {#5
+    {
+        "command" =>
+"'if [[ -d /proc/driver/gcmem ]]; then
+    cd /proc/driver/gcmem
+    for i in *; do
+        echo -n \"\$i: \"
+        cat \$i
+    done
+fi'",
+        "title"   => "gcmem info",
+        "description" => "",
+    },
+    {
         "command" => "cat /sys/module/lowmemorykiller/parameters/adj",
         "title"   => "LMK_adj",
         "description" => "",
     },
-    {#6
+    {
         "command" => "cat /sys/module/lowmemorykiller/parameters/minfree",
         "title"   => "LMK_minfree",
         "description" => "",
     },
-    {#7
+    {
         "command" => "procrank",
         "title"   => "procrank",
         "description" => "",
     },
-    {#8
+    {
         "command" => "librank",
         "title"   => "librank",
         "description" => "",
     },
-    {#9
+    {
         "command" => "cat /proc/iomem",
         "title"   => "iomem",
         "description" => "",
     },
-    {#10
+    {
         "command" => "cat /proc/vmallocinfo",
         "title"   => "vmallocinfo",
         "description" => "",
     },
-    {#11
+    {
         "command" => "cat /proc/vmstat",
         "title"   => "vmstat",
         "description" => "",
     },
-    {#12
+    {
         "command" => "cat /proc/zoneinfo",
         "title"   => "zoneinfo",
         "description" => "",
     },
-    {#13
+    {
         "command" => "cat /proc/buddyinfo",
         "title"   => "buddyinfo",
         "description" => "",
     },
-    {#14
+    {
         "command" => "cat /proc/pagetypeinfo",
         "title"   => "pagetypeinfo",
         "description" => "",
     },
-    {#15
+    {
         "command" => "cat /proc/cmainfo",
         "title"   => "cmainfo",
         "description" => "",
     },
-    {#16
+    {
         "command" => "cat /proc/slabinfo",
         "title"   => "slabinfo",
         "description" => "",
     },
-    {#17
+    {
         "command" => "showslab -s c",
         "title"   => "showslab ",
         "description" => "",
     },
-    {#18
+    {
         "command" => "slabinfo -a",
         "title"   => "slabinfo_alias",
         "description" => "",
     },
-    {#19
+    {
         "command" => "slabinfo",
         "title"   => "slabinfo_list",
         "description" => "",
     },
-    {#20
+    {
         "command" => "sysctl -a",
         "title"   => "sysctl",
         "description" => "",
     },
-    {#21
+    {
         "command" =>
 "'if [[ -d /proc/sys/vm ]]; then
     cd /proc/sys/vm
@@ -412,47 +420,47 @@ fi'",
         "title"   => "sysctl_vm",
         "description" => "",
     },
-    {#22
+    {
         "command" => "cat /sys/kernel/debug/memblock/memory",
         "title"   => "memblock",
         "description" => "",
     },
-    {#23
+    {
         "command" => "cat /sys/kernel/debug/memblock/reserved",
         "title"   => "memblock_reserved",
         "description" => "",
     },
-    {#24
+    {
         "command" => "cat /sys/kernel/debug/ion/heaps/carveout_heap",
         "title"   => "ion_carveout",
         "description" => "",
     },
-    {#25
+    {
         "command" => "cat /sys/kernel/debug/ion/heaps/system_heap",
         "title"   => "ion_system",
         "description" => "",
     },
-    {#26
+    {
         "command" => "dumpsys SurfaceFlinger",
         "title"   => "Dumpsys_SurfaceFlinger",
         "description" => "",
     },
-    {#27
+    {
         "command" => "dumpsys meminfo -a",
         "title"   => "Dumpsys_Meminfo",
         "description" => "",
     },
-    {#28
+    {
         "command" => "dumpsys procstats",
         "title"   => "Dumpsys_Procstats ",
         "description" => "",
     },
-    {#29
+    {
         "command" => "dumpsys activity oom",
         "title"   => "Dumpsys_OOM",
         "description" => "",
     },
-    {#30
+    {
         "command" =>
 "'cd /proc
 for i in *; do
@@ -465,7 +473,7 @@ done'",
         "title"   => "showmap",
         "description" => "",
     },
-    {#31
+    {
         "command" =>
 "'cd /proc
 for i in *; do
