@@ -109,7 +109,7 @@ sub parse{
     #===vmallocinfo=== part
     $part = get_part_meminfo_value($meminfostr, '(===vmallocinfo===.*?===end vmallocinfo===)');
     my $vmalloc_total = 0;
-    while($part =~ /0x0000000000000000-0x0000000000000000.*?pages=(\d+) vmalloc/g){
+    while($part =~ /.*?pages=(\d+) vmalloc/g){
         $vmalloc_total += $1;
     }
     my $vmalloc_modules = 0;
