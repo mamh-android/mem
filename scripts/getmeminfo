@@ -211,12 +211,12 @@ sub print_mempower_summary{
     printf "page_tables:%s KB\n",                     ${$mem_result_hash}{"pagetables"};
     printf "kernel_stack:%s KB\n",                    ${$mem_result_hash}{"kernelstack"};
     printf "cma_contigous:%s KB\n",                   ${$mem_result_hash}{"cmacontigous"};
-    printf "vmalloc total:%s KB\n",                   ${$mem_result_hash}{"vmalloc_total"};
+    printf "vmalloc_total:%s KB\n",                   ${$mem_result_hash}{"vmalloc_total"};
     printf "vmalloc_modules:%s KB\n",                 ${$mem_result_hash}{"vmalloc_modules"};
     printf "vmalloc_logcat:%s KB\n",                  ${$mem_result_hash}{"vmalloc_logcat"};
     printf "vmalloc_gc:%s KB\n",                      ${$mem_result_hash}{"vmalloc_gc"};
     printf "vmalloc_others:%s KB\n",                  ${$mem_result_hash}{"vmalloc_others"};
-    printf "ion_system heap:%s KB\n",                 ${$mem_result_hash}{"ion_system_heap_total"};
+    printf "ion_system_heap:%s KB\n",                 ${$mem_result_hash}{"ion_system_heap_total"};
     printf "zram_used:%d KB\n",                       ${$mem_result_hash}{"zram_used"};
     printf "unknown:%s KB\n",                         ${$mem_result_hash}{"kernel_unknown"};
     printf "gc_allocate:%s KB\n",                     ${$mem_result_hash}{"gc_alloc"};
