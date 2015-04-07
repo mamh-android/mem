@@ -1,6 +1,6 @@
 #!/bin/bash
 # Enables KSM feature on device, or
-# Use "enable_ksm.sh 0" to disable KSM feature
+# Use "ksm_enable.sh 0" to disable KSM feature
 . $(dirname "$0")/common.sh
 
 adb_root
