@@ -41,10 +41,15 @@ Short explanations of scripts here:
 - adb_watch
   Script to 'watch' adb shell outputs
 
-- enable_ksm.sh
-  Enables/disables KSM feature on device
+- ksm_enable.sh
+  Enables/disables KSM feature on device. If no parameters supplied, it enables
+  ksm on device, or if "ksm_enable.sh 0", disables ksm on device.
 
-- trace_zram_mem.sh
+- zram_enable.sh
+  Enables/disables zRAM feature on device. If no parameters supplied, it enables
+  zRAM on device, or if "zram_enable.sh 0", disables zRAM on device.
+
+- zram_trace_mem.sh
   Excel friendly output to track zRAM memory savings
 
 - ftrace_*.sh
